@@ -1,0 +1,29 @@
+{
+  "company_name": "Your Company Name",
+  "company_description": "A small business that designs, builds, and supports custom software for government and commercial customers.",
+  "capabilities": [
+    "Custom software and web application development",
+    "Legacy system modernization and cloud migration",
+    "Data engineering, analytics, and dashboards",
+    "Applied AI and machine learning integration",
+    "DevSecOps and secure software delivery"
+  ],
+  "naics_codes": ["541511", "541512", "541519", "541715", "518210"],
+  "keywords": [
+    "software development",
+    "application development",
+    "custom software",
+    "software modernization",
+    "cloud migration",
+    "data analytics",
+    "artificial intelligence",
+    "machine learning",
+    "DevSecOps"
+  ],
+  "exclude_keywords": ["construction", "janitorial", "landscaping", "custodial", "roofing"],
+  "certifications": [],
+  "preferred_agencies": [],
+  "contract_size": "Realistic prime contract value: up to about $5M. Larger efforts only as a subcontractor or teaming partner.",
+  "past_performance": [],
+  "scoring_notes": "Favor work where a small software team can credibly win and deliver. Favor early-stage notices (sources sought, presolicitations) that allow time to shape the opportunity."
+}

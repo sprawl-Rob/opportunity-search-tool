@@ -1,0 +1,13 @@
+.env
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+profile.json
+settings.json
+last_gemini_response.json
+last_response.txt
+venv/
+__pycache__/
+*.pyc
+.DS_Store

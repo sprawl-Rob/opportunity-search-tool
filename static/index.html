@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opportunity Search Tool</title>
+<style>
+:root{--bg:#0f1420;--panel:#171e2e;--panel2:#1f2840;--border:#2c3651;--text:#e6eaf3;--muted:#98a3bb;--accent:#5b9dff;--green:#3ecf8e;--yellow:#f0b849;--red:#f26d6d;--purple:#b48bff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:19px;margin:0}.sub{color:var(--muted);font-size:13px}
+main{max-width:1120px;margin:0 auto;padding:18px 24px 60px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text],input[type=number],select,textarea{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font:inherit}
+textarea{width:100%}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 13px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)}button.primary{background:var(--accent);border-color:var(--accent);color:#08101f;font-weight:600}
+button:disabled{opacity:.55;cursor:default}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-top:14px}
+#feed{max-height:210px;overflow:auto;font-size:12.5px;color:var(--muted);margin-top:8px}
+#feed div{padding:1px 0}#feed .query{color:var(--accent)}#feed .error{color:var(--red)}#feed .done{color:var(--green)}#feed .source{color:var(--text)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.chip{padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:var(--panel);cursor:pointer;font-size:13px;color:var(--muted)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#08101f;font-weight:600}
+.label{color:var(--muted);font-size:12px;margin-right:2px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:13px 15px;margin-top:10px;display:flex;gap:14px}
+.score{flex:0 0 50px;height:50px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:var(--panel2)}
+.s-hi{color:var(--green)}.s-mid{color:var(--yellow)}.s-lo{color:var(--muted)}
+.body{flex:1;min-width:0}.title{font-weight:600;font-size:15px}.title a{color:var(--text);text-decoration:none}.title a:hover{color:var(--accent)}
+.meta{color:var(--muted);font-size:13px;margin-top:2px}.why{margin-top:6px;font-style:italic;color:#c6cedf;font-size:13.5px}
+.tags{margin-top:7px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+.tag.contract{color:var(--accent)}.tag.sbir{color:var(--purple)}.tag.crada{color:var(--green)}.tag.small_business{color:var(--yellow)}
+.tag.urgent{color:var(--red)}
+.overlay{position:fixed;inset:0;background:rgba(5,8,15,.72);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:28px 12px;z-index:5}
+.overlay.on{display:flex}.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 22px;width:100%;max-width:820px}
+.modal h2{margin:0 0 4px;font-size:17px}label.f{display:block;margin:12px 0 4px;font-weight:600;font-size:13px}.fh{color:var(--muted);font-weight:400}
+.modal-head{display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}th{color:var(--muted);cursor:pointer;white-space:nowrap}
+a{color:var(--accent)}.empty{color:var(--muted);padding:26px;text-align:center}
+.notice{color:var(--yellow);font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1 id="heading">Opportunity Search Tool</h1><div class="sub">Contracts · SBIR/STTR · CRADAs · Small-business procurement</div></div>
+  <div class="row"><button onclick="openDirectory()">CRADA agencies</button><button onclick="openReport()">Pipeline report</button><button onclick="openSettings()">⚙ Company profile</button></div>
+</header>
+<main>
+  <div class="panel">
+    <div class="row">
+      <input type="text" id="focus" placeholder="Optional focus for this run, e.g. Navy data platforms" style="flex:1;min-width:240px">
+      <label class="row" style="gap:5px"><input type="checkbox" id="deep" checked> Deep web search</label>
+      <button class="primary" id="runBtn" onclick="runSearch()">Run search</button>
+    </div>
+    <div id="samNote" class="notice" style="display:none">SAM.gov is not configured, so contracts and small-business set-asides won't appear. Add <code>SAM_API_KEY</code> to <code>.env</code> and restart.</div>
+    <div id="feed"></div>
+  </div>
+  <div class="chips" id="catChips"><span class="label">Type</span></div>
+  <div class="chips" id="statusChips"><span class="label">Status</span></div>
+  <div class="chips">
+    <span class="label">Minimum score</span>
+    <input type="number" id="minScore" value="40" min="0" max="100" style="width:72px" onchange="load()">
+    <input type="text" id="q" placeholder="Search title, agency, number" oninput="debouncedLoad()" style="flex:1;min-width:200px">
+    <span class="label" id="count"></span>
+  </div>
+  <div id="list"></div>
+</main>
+
+<div class="overlay" id="settingsOverlay"><div class="modal">
+  <div class="modal-head"><h2>Company profile</h2><button onclick="closeOverlay('settingsOverlay')">Close ✕</button></div>
+  <div class="sub">Used for both searching and scoring. One item per line in lists.</div>
+  <div class="row" style="margin-top:10px;align-items:flex-end">
+    <div style="flex:1;min-width:230px"><label class="f" style="margin-top:0">Deep-search model</label><select id="s_search" style="width:100%"></select></div>
+    <div style="flex:1;min-width:230px"><label class="f" style="margin-top:0">Scoring model</label><select id="s_score" style="width:100%"></select></div>
+    <button id="refreshBtn" onclick="refreshModels()">↻ Refresh models</button>
+  </div>
+  <div id="modelsNote" class="sub" style="margin-top:4px"></div>
+  <label class="f">Company name</label><input type="text" id="p_company_name" style="width:100%">
+  <label class="f">Description</label><textarea id="p_company_description" rows="2"></textarea>
+  <label class="f">Capabilities</label><textarea id="p_capabilities" rows="4"></textarea>
+  <label class="f">NAICS codes <span class="fh">— a notice matches on one of these or a keyword in its title</span></label><textarea id="p_naics_codes" rows="3"></textarea>
+  <label class="f">Search keywords</label><textarea id="p_keywords" rows="4"></textarea>
+  <label class="f">Excluded keywords</label><textarea id="p_exclude_keywords" rows="2"></textarea>
+  <label class="f">Certifications held <span class="fh">— one per line: 8a, hubzone, sdvosb, vosb, wosb, edwosb. Set-asides needing others are hidden.</span></label><textarea id="p_certifications" rows="2"></textarea>
+  <label class="f">Preferred agencies</label><textarea id="p_preferred_agencies" rows="2"></textarea>
+  <label class="f">Contract size</label><textarea id="p_contract_size" rows="2"></textarea>
+  <label class="f">Past performance</label><textarea id="p_past_performance" rows="3"></textarea>
+  <label class="f">Scoring notes</label><textarea id="p_scoring_notes" rows="3"></textarea>
+  <div class="row" style="margin-top:14px"><button class="primary" onclick="saveSettings()">Save</button><span id="saveNote" class="sub"></span></div>
+</div></div>
+
+<div class="overlay" id="reportOverlay"><div class="modal" style="max-width:1020px">
+  <div class="modal-head"><h2>Pipeline report</h2><button onclick="closeOverlay('reportOverlay')">Close ✕</button></div>
+  <div id="reportBody"></div>
+</div></div>
+
+<div class="overlay" id="dirOverlay"><div class="modal">
+  <div class="modal-head"><h2>Agencies offering CRADAs</h2><button onclick="closeOverlay('dirOverlay')">Close ✕</button></div>
+  <div class="sub">A CRADA is a research partnership, not a contract. The federal partner generally cannot pay the company; the value is lab access, IP, and a path to funded work.</div>
+  <div id="dirBody"></div>
+</div></div>
+
+<script>
+const CATS={"":"All",contract:"Contracts",sbir:"SBIR/STTR",crada:"CRADA",small_business:"Small business"};
+const STATUSES={new:"New",tracking:"Tracking",capture:"Capture",proposal:"Proposal",submitted:"Submitted",won:"Won",lost:"Lost",no_bid:"No bid",closed:"Closed"};
+const STATUS_CHIPS={active:"Active",...STATUSES,"":"All"};
+const PROVIDERS={anthropic:"Anthropic",openai:"OpenAI",google:"Google"};
+const LIST_FIELDS=["capabilities","naics_codes","keywords","exclude_keywords","certifications","preferred_agencies","past_performance"];
+const TEXT_FIELDS=["company_name","company_description","contract_size","scoring_notes"];
+let cat="",status="active",lastEvent=0,polling=false,rows={},report=[],reportSort={k:null,d:1};
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function safeUrl(u){return /^https?:\/\//i.test(u||"")?u:"#"}
+function $(id){return document.getElementById(id)}
+function chips(el,map,get,set){
+  el.querySelectorAll(".chip").forEach(c=>c.remove());
+  for(const [v,l] of Object.entries(map)){
+    const s=document.createElement("span");s.className="chip"+(get()===v?" on":"");s.textContent=l;
+    s.onclick=()=>{set(v);chips(el,map,get,set);load()};el.appendChild(s);
+  }
+}
+function daysLeft(d){if(!d)return null;return Math.ceil((new Date(d+"T23:59:59")-new Date())/86400000)}
+
+async function load(){
+  const p=new URLSearchParams({min_score:$("minScore").value||0});
+  if(status)p.set("status",status);if(cat)p.set("category",cat);if($("q").value)p.set("q",$("q").value);
+  const d=await (await fetch("/api/opportunities?"+p)).json();
+  rows={};d.opportunities.forEach(o=>rows[o.id]=o);
+  $("count").textContent=d.count+" shown";
+  $("list").innerHTML=d.opportunities.length?d.opportunities.map(card).join(""):'<div class="empty">No opportunities match. Run a search or lower the minimum score.</div>';
+}
+function card(o){
+  const sc=o.score==null?"–":o.score,cls=o.score>=65?"s-hi":o.score>=40?"s-mid":"s-lo";
+  const left=daysLeft(o.deadline);
+  const due=o.deadline?`<span class="tag ${left<=7?"urgent":""}">Due ${esc(o.deadline)}${left>=0?` · ${left}d`:""}</span>`:"";
+  const opts=Object.entries(STATUSES).map(([v,l])=>`<option value="${v}" ${o.status===v?"selected":""}>${l}</option>`).join("");
+  return `<div class="card"><div class="score ${cls}">${sc}</div><div class="body">
+    <div class="title"><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.title)}</a></div>
+    <div class="meta">${esc(o.agency||"")}${o.reference?" · "+esc(o.reference):""}</div>
+    ${o.rationale?`<div class="why">${esc(o.rationale)}</div>`:""}
+    <div class="tags"><span class="tag ${esc(o.category)}">${esc(CATS[o.category]||o.category)}</span>
+      ${o.notice_type?`<span class="tag">${esc(o.notice_type)}</span>`:""}${due}
+      ${o.set_aside?`<span class="tag">${esc(o.set_aside)}</span>`:""}
+      ${o.naics?`<span class="tag">NAICS ${esc(o.naics)}</span>`:""}
+      <span class="tag">${esc(o.source||"")}</span>${o.verified?"":'<span class="tag urgent">link unverified</span>'}
+      <select data-id="${esc(o.id)}" onchange="setStatus(this)" style="padding:2px 6px;font-size:12px;margin-left:auto">${opts}</select>
+    </div></div></div>`;
+}
+async function setStatus(sel){
+  await fetch("/api/opportunities/"+encodeURIComponent(sel.dataset.id),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:sel.value})});
+  load();
+}
+let t;function debouncedLoad(){clearTimeout(t);t=setTimeout(load,250)}
+
+async function runSearch(){
+  $("feed").innerHTML="";lastEvent=0;
+  const r=await fetch("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({focus:$("focus").value||null,deep:$("deep").checked})});
+  if(!r.ok){$("feed").innerHTML='<div class="error">'+esc((await r.json()).detail)+"</div>";return}
+  poll();
+}
+async function poll(){
+  if(polling)return;polling=true;$("runBtn").disabled=true;
+  try{for(;;){
+    const d=await (await fetch("/api/search/status?after="+lastEvent)).json();
+    for(const e of d.events){lastEvent=e.id;
+      const el=document.createElement("div");el.className=e.kind;
+      el.textContent=new Date(e.ts).toLocaleTimeString()+"  "+e.text;$("feed").appendChild(el);$("feed").scrollTop=1e9}
+    if(!d.running)break;
+    await new Promise(r=>setTimeout(r,1500));
+  }}finally{polling=false;$("runBtn").disabled=false;load()}
+}
+
+function closeOverlay(id){$(id).classList.remove("on")}
+function fillSelect(sel,providers,current){
+  let h="";
+  for(const [p,i] of Object.entries(providers)){
+    if(!i.configured){h+=`<optgroup label="${PROVIDERS[p]} — add API key to .env"><option disabled>(not configured)</option></optgroup>`;continue}
+    h+=`<optgroup label="${PROVIDERS[p]}">`+i.models.map(m=>`<option value="${esc(m)}" ${m===current?"selected":""}>${esc(m)}</option>`).join("")+"</optgroup>";
+  }
+  if(current&&!h.includes(`value="${esc(current)}"`))h=`<option value="${esc(current)}" selected>${esc(current)}</option>`+h;
+  sel.innerHTML=h;
+}
+async function openSettings(){
+  const [s,p]=await Promise.all([fetch("/api/settings").then(r=>r.json()),fetch("/api/profile").then(r=>r.json())]);
+  fillSelect($("s_search"),s.providers,s.settings.search_model);fillSelect($("s_score"),s.providers,s.settings.scoring_model);
+  TEXT_FIELDS.forEach(k=>$("p_"+k).value=p[k]||"");LIST_FIELDS.forEach(k=>$("p_"+k).value=(p[k]||[]).join("\n"));
+  $("saveNote").textContent="";$("settingsOverlay").classList.add("on");
+}
+async function refreshModels(){
+  $("refreshBtn").disabled=true;$("modelsNote").textContent="Fetching current models…";
+  try{const a=$("s_search").value,b=$("s_score").value,s=await (await fetch("/api/settings?refresh=true")).json();
+    fillSelect($("s_search"),s.providers,a);fillSelect($("s_score"),s.providers,b);
+    $("modelsNote").textContent=Object.entries(s.providers).map(([p,i])=>PROVIDERS[p]+": "+(i.configured?i.models.length+" models":"no key")).join(" · ");
+  }finally{$("refreshBtn").disabled=false}
+}
+async function saveSettings(){
+  const body={};TEXT_FIELDS.forEach(k=>body[k]=$("p_"+k).value.trim());
+  LIST_FIELDS.forEach(k=>body[k]=$("p_"+k).value.split("\n").map(s=>s.trim()).filter(Boolean));
+  const r=await fetch("/api/profile",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok){$("saveNote").textContent=(await r.json()).detail;return}
+  const m={};if($("s_search").value)m.search_model=$("s_search").value;if($("s_score").value)m.scoring_model=$("s_score").value;
+  await fetch("/api/settings",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(m)});
+  $("saveNote").textContent="Saved. Opportunities are rescored on the next search.";setHeading(body.company_name);
+}
+function setHeading(n){$("heading").textContent=n&&n!=="Your Company Name"?n+" — Opportunity Search Tool":"Opportunity Search Tool"}
+
+async function openReport(){report=(await (await fetch("/api/report")).json()).rows;renderReport();$("reportOverlay").classList.add("on")}
+const RCOLS=[["title","Opportunity"],["agency","Agency"],["category","Type"],["deadline","Due"],["score","Score"],["status","Status"]];
+function renderReport(){
+  if(!report.length){$("reportBody").innerHTML='<div class="empty">Nothing in the pipeline yet. Change an opportunity\'s status to add it.</div>';return}
+  const {k,d}=reportSort,r=[...report];
+  if(k)r.sort((a,b)=>{const x=a[k]??"",y=b[k]??"";return (x>y?1:x<y?-1:0)*d});
+  $("reportBody").innerHTML="<table><tr>"+RCOLS.map(([c,l])=>`<th data-k="${c}" onclick="sortReport(this)">${l}${k===c?(d>0?" ▲":" ▼"):""}</th>`).join("")+"</tr>"+
+    r.map(o=>`<tr><td><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.title)}</a></td><td>${esc(o.agency||"")}</td><td>${esc(CATS[o.category]||o.category)}</td><td>${esc(o.deadline||"")}</td><td>${o.score??""}</td><td>${esc(STATUSES[o.status]||o.status)}</td></tr>`).join("")+"</table>";
+}
+function sortReport(th){const c=th.dataset.k;reportSort=reportSort.k===c?{k:c,d:-reportSort.d}:{k:c,d:1};renderReport()}
+
+async function openDirectory(){
+  const d=await (await fetch("/api/crada_directory")).json();
+  let h="<table><tr><th>Agency</th><th>Office</th><th>Focus</th></tr>"+d.offices.map(o=>`<tr><td>${esc(o.agency)}</td><td><a href="${esc(safeUrl(o.url))}" target="_blank" rel="noopener">${esc(o.office)}</a></td><td>${esc(o.focus)}</td></tr>`).join("")+"</table>";
+  if(d.active_agencies.length)h+='<h3 style="font-size:14px;margin:18px 0 0">Recently announcing CRADA opportunities</h3><table><tr><th>Agency</th><th>Notices</th><th>Latest</th></tr>'+d.active_agencies.map(a=>`<tr><td>${esc(a.agency)}</td><td>${a.notices}</td><td>${esc(a.latest||"")}</td></tr>`).join("")+"</table>";
+  $("dirBody").innerHTML=h;$("dirOverlay").classList.add("on");
+}
+
+chips($("catChips"),CATS,()=>cat,v=>cat=v);
+chips($("statusChips"),STATUS_CHIPS,()=>status,v=>status=v);
+fetch("/api/settings").then(r=>r.json()).then(s=>{if(!s.sam_configured)$("samNote").style.display="block"});
+fetch("/api/profile").then(r=>r.json()).then(p=>setHeading(p.company_name));
+fetch("/api/search/status").then(r=>r.json()).then(d=>{if(d.running)poll()});
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn>=0.29
+anthropic>=1.3,<2  # 2.x streaming stalled until the connection reset during web-search turns
+python-dotenv>=1.0
+certifi>=2024.2.2

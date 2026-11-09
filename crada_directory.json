@@ -1,0 +1,11 @@
+[
+  {"agency": "National Institute of Standards and Technology (NIST)", "office": "Technology Partnerships Office", "url": "https://www.nist.gov/tpo/crada", "focus": "Measurement science, cybersecurity, AI standards, advanced communications"},
+  {"agency": "National Institutes of Health (NIH)", "office": "Office of Technology Transfer", "url": "https://www.techtransfer.nih.gov/policy/cradas", "focus": "Biomedical research; software, data, and informatics collaborations"},
+  {"agency": "U.S. Army Research Laboratory (ARL)", "office": "Collaborate With Us — CRADA", "url": "https://arl.devcom.army.mil/collaborate-with-us/opportunity/crada/", "focus": "Autonomy, AI, networks, cyber, human-systems integration"},
+  {"agency": "National Oceanic and Atmospheric Administration (NOAA)", "office": "Technology Partnerships Office", "url": "https://techpartnerships.noaa.gov/", "focus": "Weather and ocean data, modeling, geospatial software"},
+  {"agency": "Department of Veterans Affairs (VA)", "office": "Technology Transfer Program", "url": "https://www.research.va.gov/programs/tech_transfer/", "focus": "Veteran health research, data, and software"},
+  {"agency": "Environmental Protection Agency (EPA)", "office": "Federal Technology Transfer Act Program", "url": "https://www.epa.gov/ftta", "focus": "Environmental monitoring, data, and modeling"},
+  {"agency": "Department of Energy National Laboratories", "office": "Lab Partnering Service", "url": "https://labpartnering.org/", "focus": "Find researchers and facilities across the national lab system; CRADAs are made with individual labs"},
+  {"agency": "National Energy Technology Laboratory (NETL)", "office": "Technology Transfer Agreements", "url": "https://netl.doe.gov/business/tech-transfer/agreements", "focus": "Energy systems, computational science, data"},
+  {"agency": "All federal laboratories", "office": "Federal Laboratory Consortium", "url": "https://federallabs.org/", "focus": "Directory of federal labs and their technology-transfer offices"}
+]
